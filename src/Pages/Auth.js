@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dropdown, DropdownButton, Form, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { signIn } from '../api/auth.js';
+import { signIn, signUp } from '../api/auth.js';
 
 const Auth = () => {
 
@@ -18,11 +18,24 @@ const Auth = () => {
     const navigate = useNavigate();
 
     const redirectURL = () => {
-        navigate("/");
+            const userType=localStorage.getItem("userTypes");
+        if(!userType){
+            setErrorMessage("Something Went Wrong!");
+            return;
+        }
+        if(userType==="CUSTOMER"){
+            navigate(-1);
+        }
+        else if(userType==="CLIENT"){
+            navigate("/client");
+        }
+        else{
+            navigate("/admin");
+        }
     }
 
     useEffect(() => {
-        if (localStorage.getItem("token")) {
+        if (localStorage.getItem("accessToken")) {
             //redirect URL 
             redirectURL();
         }
@@ -108,7 +121,7 @@ const Auth = () => {
         return true;
     }
 
-    const signupFn = (e) => {
+    const signupFn = async (e) => {
         e.preventDefault();
 
         const data = {
@@ -121,6 +134,13 @@ const Auth = () => {
 
         if (!validateData(data)) {
             return;
+        }
+        const response = await signUp(data);
+        if (response.status === 201) {
+            setMessage("Signed Up Successfully");
+            clearState();
+        } else {
+            setErrorMessage(response.data.message);
         }
 
     }
@@ -136,8 +156,21 @@ const Auth = () => {
         if (!validateData(data)) {
             return;
         }
-        
+
         const result = await signIn(data);
+
+        if (result.status === 200) {
+            setMessage("Logged In Successfully");
+            const { name, userId, userTypes, userStatus, accessToken } = result.data;
+            
+            localStorage.setItem("name", name);
+            localStorage.setItem("userId", userId);
+            localStorage.setItem("userTypes", userTypes);
+            localStorage.setItem("userStatus", userStatus);
+            localStorage.setItem("accessToken", accessToken);
+
+            redirectURL();
+        }
         setErrorMessage(result.data.message);
 
 
