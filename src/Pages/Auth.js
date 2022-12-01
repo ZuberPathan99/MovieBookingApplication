@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dropdown, DropdownButton, Form, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { signIn } from '../api/auth.js';
 
 const Auth = () => {
 
@@ -122,11 +123,9 @@ const Auth = () => {
             return;
         }
 
-        //API call 
-
     }
 
-    const loginFn = (e) => {
+    const loginFn = async (e) => {
         e.preventDefault();
 
         const data = {
@@ -137,8 +136,10 @@ const Auth = () => {
         if (!validateData(data)) {
             return;
         }
+        
+        const result = await signIn(data);
+        setErrorMessage(result.data.message);
 
-        //API call 
 
     }
 
